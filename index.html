@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Image Converter — JPG ⇄ PNG ⇄ WebP ⇄ ICO (Client‑Side)</title>
+  <meta name="description" content="Free, privacy‑friendly in‑browser image converter. Convert JPG, PNG, WebP, and ICO fully client‑side. Drag & drop, batch, per‑file & ZIP download, no uploads." />
+  <meta name="keywords" content="image converter, jpg to png, png to jpg, webp to png, ico generator, client side, offline, zip download" />
+  <meta name="robots" content="index,follow" />
+  <meta name="author" content="Open Web Tools" />
+  <meta http-equiv="content-language" content="en,ar" />
+  <link rel="alternate" hreflang="en" href="." />
+  <link rel="alternate" hreflang="ar" href="." />
+  <link rel="canonical" href="." />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Image Converter — JPG ⇄ PNG ⇄ WebP ⇄ ICO (Client‑Side)" />
+  <meta property="og:description" content="Convert images in your browser. JPG ⇄ PNG ⇄ WebP ⇄ ICO. Drag & drop, batch, per‑file & ZIP download. No uploads." />
+  <meta property="og:url" content="." />
+  <meta property="og:site_name" content="Image Converter" />
+  <meta property="og:image" content="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAXElEQVR4nO3RMQEAIAwEsf2nZxwqIYQm6o8JQ3p9CwAAAAAAAAAAwH3m0o6f4zM6w8wV4f2t9/3i3wAAAAAAAAAAwG3lKQAAAAAAAAAAAPgA0s1cA2k3F8p0w7D5AAAAAElFTkSuQmCC" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- JSON-LD Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Image Converter",
+    "url": ".",
+    "image": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAAXElEQVR4nO3RMQEAIAwEsf2nZxwqIYQm6o8JQ3p9CwAAAAAAAAAAwH3m0o6f4zM6w8wV4f2t9/3i3wAAAAAAAAAAwG3lKQAAAAAAAAAAAPgA0s1cA2k3F8p0w7D5AAAAAElFTkSuQmCC",
+    "description": "Privacy‑friendly in‑browser image converter for JPG, PNG, WebP, and ICO. Drag & drop, batch, per‑file & ZIP download.",
+    "applicationCategory": "MultimediaApplication",
+    "operatingSystem": "Web",
+    "inLanguage": ["en", "ar"],
+    "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"}
+  }
+  </script>
+
+  <style>
+    :root{
+      --bg: #0b1020; /* deep navy */
+      --card: #121833;
+      --muted: #99a3b3;
+      --text: #f5f7fb;
+      --accent: #6366f1;
+      --accent-2: #22d3ee;
+      --ring: rgba(99,102,241,.5);
+      --ok: #10b981;
+      --warn: #f59e0b;
+      --error: #ef4444;
+      --border: rgba(255,255,255,.08);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:radial-gradient(1200px 800px at 20% -10%, #1b2147 0%, #0b1020 40%), var(--bg);color:var(--text);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, "Helvetica Neue", Arial}
+    a{color:var(--accent-2)}
+    header{position:sticky;top:0;backdrop-filter:saturate(120%) blur(8px);background:linear-gradient(180deg, rgba(9,12,25,.9), rgba(9,12,25,.6));border-bottom:1px solid var(--border);z-index:5}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .hero{display:flex;gap:18px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .title{font-size:clamp(20px,3.4vw,34px);font-weight:800;letter-spacing:.2px}
+    .subtitle{color:var(--muted);font-size:14px}
+
+    main{max-width:1100px;margin:24px auto;display:grid;grid-template-columns: 1fr;gap:18px;padding:0 18px}
+    @media(min-width:960px){
+      main{grid-template-columns: 1fr 300px}
+    }
+
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.01));border:1px solid var(--border);border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.25)}
+    .card .pad{padding:18px}
+
+    .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    @media(min-width:680px){.controls{grid-template-columns:repeat(4,minmax(0,1fr))}}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    select,input[type="color"],input[type="range"],button{width:100%;padding:10px 12px;border-radius:12px;border:1px solid var(--border);background:#0f1530;color:var(--text);outline:none}
+    select:focus,input:focus,button:focus{box-shadow:0 0 0 3px var(--ring);border-color:transparent}
+    button{cursor:pointer;font-weight:600}
+    .btn-primary{background:linear-gradient(135deg, var(--accent), var(--accent-2));border:0}
+
+    .drop{border:2px dashed rgba(255,255,255,.2);border-radius:16px;min-height:160px;display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;padding:24px;background:rgba(255,255,255,.02)}
+    .drop.dragover{border-color:var(--accent-2);background:rgba(34,211,238,.06)}
+
+    .files{display:grid;gap:10px;margin-top:14px}
+    .file{display:grid;grid-template-columns: 56px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02)}
+    .thumb{width:56px;height:56px;background:#0a0f24;border-radius:10px;overflow:hidden;display:grid;place-items:center}
+    .thumb img{width:100%;height:100%;object-fit:cover}
+    .fname{font-weight:600}
+    .meta{font-size:12px;color:var(--muted)}
+    .badge{padding:4px 8px;border-radius:999px;background:#0d1431;font-size:12px;border:1px solid var(--border)}
+
+    .ads{display:grid;gap:12px}
+    .ad-slot{height:250px;background:repeating-linear-gradient(45deg, #10183a, #10183a 10px, #0d1431 10px, #0d1431 20px);border:1px dashed rgba(255,255,255,.15);border-radius:16px;display:grid;place-items:center;color:#9fb0ff}
+    .ad-slot.small{height:120px}
+
+    .footer{color:var(--muted);font-size:12px;text-align:center;padding:24px}
+
+    /* toast */
+    .toast{position:fixed;bottom:24px;right:24px;background:#0e1a3e;border:1px solid var(--border);padding:14px 16px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,.35);display:none;align-items:center;gap:10px;z-index:10}
+    .toast.show{display:flex;animation:pop .2s ease-out}
+    .toast .dot{width:10px;height:10px;border-radius:50%;background:var(--ok)}
+    @keyframes pop{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+    .lang-switch{display:flex;gap:8px}
+    .lang-switch button{padding:8px 10px}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap hero">
+      <div>
+        <div class="title" data-i18n="title">Image Converter</div>
+        <div class="subtitle" data-i18n="subtitle">JPG ⇄ PNG ⇄ WebP ⇄ ICO — fully client‑side</div>
+      </div>
+      <div class="lang-switch" aria-label="Language switcher">
+        <button id="lang-en" class="badge" aria-pressed="true">EN</button>
+        <button id="lang-ar" class="badge" aria-pressed="false">AR</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="pad">
+        <div class="controls" role="group" aria-label="Conversion settings">
+          <div>
+            <label data-i18n="convertTo">Convert to</label>
+            <select id="format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPG</option>
+              <option value="webp">WebP</option>
+              <option value="ico">ICO</option>
+            </select>
+          </div>
+          <div>
+            <label data-i18n="quality">Quality (JPG/WebP)</label>
+            <input id="quality" type="range" min="0.5" max="1" step="0.05" value="0.92" />
+          </div>
+          <div>
+            <label data-i18n="bgColor">Background for JPG</label>
+            <input id="bg" type="color" value="#ffffff" />
+          </div>
+          <div style="display:flex;gap:8px;align-items:end">
+            <button id="pick" class="btn-primary" data-i18n="pick">Pick files</button>
+            <input id="file" type="file" accept="image/*,.ico" multiple hidden />
+          </div>
+        </div>
+
+        <div id="drop" class="drop" tabindex="0" aria-label="Drop zone">
+          <div>
+            <div style="font-weight:700;margin-bottom:6px" data-i18n="dropTitle">Drag & drop images here</div>
+            <div class="subtitle" data-i18n="dropSubtitle">or click the button above</div>
+          </div>
+        </div>
+
+        <div class="files" id="list" aria-live="polite"></div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+          <button id="convert" class="btn-primary" data-i18n="convertAll">Convert all</button>
+          <button id="zip" class="badge" data-i18n="zipAll">Download all as ZIP</button>
+          <span class="subtitle" id="summary"></span>
+        </div>
+      </div>
+    </section>
+
+    <aside class="ads">
+      <div class="ad-slot" role="complementary" aria-label="Ad slot">Ad Space 300×250</div>
+      <div class="ad-slot small" role="complementary" aria-label="Ad slot">Ad Space 300×120</div>
+      <div class="card"><div class="pad">
+        <h3 style="margin:0 0 8px">Privacy</h3>
+        <p class="subtitle" style="margin:0">Everything runs in your browser. No files are uploaded.</p>
+      </div></div>
+    </aside>
+  </main>
+
+  <div class="footer">© <span id="year"></span> Image Converter — Client‑side HTML5 app</div>
+
+  <div class="toast" role="status" aria-live="polite" id="toast">
+    <span class="dot"></span>
+    <span data-i18n="done">Conversion complete</span>
+  </div>
+
+  <canvas id="work" hidden></canvas>
+
+  <script>
+    // Minimal i18n (EN/AR)
+    const I18N = {
+      en: {
+        title: 'Image Converter',
+        subtitle: 'JPG ⇄ PNG ⇄ WebP ⇄ ICO — fully client‑side',
+        convertTo: 'Convert to',
+        quality: 'Quality (JPG/WebP)',
+        bgColor: 'Background for JPG',
+        pick: 'Pick files',
+        dropTitle: 'Drag & drop images here',
+        dropSubtitle: 'or click the button above',
+        convertAll: 'Convert all',
+        zipAll: 'Download all as ZIP',
+        done: 'Conversion complete'
+      },
+      ar: {
+        title: 'محول الصور',
+        subtitle: 'JPG ⇄ PNG ⇄ WebP ⇄ ICO — يعمل داخل المتصفح فقط',
+        convertTo: 'التحويل إلى',
+        quality: 'الجودة (JPG/WebP)',
+        bgColor: 'لون الخلفية للـ JPG',
+        pick: 'اختر ملفات',
+        dropTitle: 'اسحب وأفلت الصور هنا',
+        dropSubtitle: 'أو اضغط الزر بالأعلى',
+        convertAll: 'تحويل الكل',
+        zipAll: 'تنزيل الكل كملف ZIP',
+        done: 'اكتمل التحويل'
+      }
+    };
+
+    const langBtns = { en: document.getElementById('lang-en'), ar: document.getElementById('lang-ar') };
+    let currentLang = (navigator.language||'en').startsWith('ar') ? 'ar' : 'en';
+    function applyLang(l){
+      currentLang = l;
+      document.documentElement.lang = l;
+      document.documentElement.dir = l==='ar' ? 'rtl' : 'ltr';
+      for(const el of document.querySelectorAll('[data-i18n]')){
+        const k = el.getAttribute('data-i18n');
+        el.textContent = I18N[l][k] || el.textContent;
+      }
+      langBtns.en.setAttribute('aria-pressed', l==='en');
+      langBtns.ar.setAttribute('aria-pressed', l==='ar');
+    }
+    langBtns.en.onclick = ()=>applyLang('en');
+    langBtns.ar.onclick = ()=>applyLang('ar');
+    applyLang(currentLang);
+
+    // UI elements
+    const drop = document.getElementById('drop');
+    const fileBtn = document.getElementById('pick');
+    const fileInput = document.getElementById('file');
+    const list = document.getElementById('list');
+    const formatSel = document.getElementById('format');
+    const qualityInput = document.getElementById('quality');
+    const bgInput = document.getElementById('bg');
+    const convertBtn = document.getElementById('convert');
+    const zipBtn = document.getElementById('zip');
+    const work = document.getElementById('work');
+    const toast = document.getElementById('toast');
+    const summary = document.getElementById('summary');
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    fileBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e)=>handleFiles(e.target.files));
+
+    ;['dragenter','dragover'].forEach(type=>drop.addEventListener(type, e=>{e.preventDefault(); drop.classList.add('dragover')}));
+    ;['dragleave','drop'].forEach(type=>drop.addEventListener(type, e=>{e.preventDefault(); drop.classList.remove('dragover')}));
+    drop.addEventListener('drop', (e)=> handleFiles(e.dataTransfer.files));
+    drop.addEventListener('click', ()=> fileInput.click());
+
+    const queue = []; // {file, img, outBlob, outName, el}
+
+    function human(n){
+      const u=['B','KB','MB','GB']; let i=0; while(n>=1024&&i<u.length-1){n/=1024;i++} return n.toFixed(n<10&&i?2:1)+' '+u[i]
+    }
+
+    function addToList(file){
+      const el = document.createElement('div'); el.className='file';
+      const th = document.createElement('div'); th.className='thumb'; th.innerHTML = '<span class="subtitle">…</span>';
+      const info = document.createElement('div');
+      const name = document.createElement('div'); name.className='fname'; name.textContent=file.name;
+      const meta = document.createElement('div'); meta.className='meta'; meta.textContent = human(file.size);
+      info.append(name, meta);
+      const actions = document.createElement('div'); actions.style.display='flex'; actions.style.gap='8px';
+      const badge = document.createElement('span'); badge.className='badge'; badge.textContent='queued';
+      actions.appendChild(badge);
+      el.append(th, info, actions);
+      list.appendChild(el);
+      return {el, th, name, meta, badge, actions};
+    }
+
+    async function readImage(file){
+      const url = URL.createObjectURL(file);
+      try{
+        const img = new Image();
+        img.decoding = 'async';
+        img.loading = 'eager';
+        const loaded = new Promise((res, rej)=>{ img.onload=()=>res(); img.onerror=rej; });
+        img.src = url;
+        await loaded;
+        return img;
+      }finally{ setTimeout(()=>URL.revokeObjectURL(url), 5000); }
+    }
+
+    function handleFiles(files){
+      for(const file of files){
+        if(!file.type.startsWith('image/') && !file.name.toLowerCase().endsWith('.ico')) continue;
+        const ui = addToList(file);
+        const item = {file, img:null, outBlob:null, outName:null, ui};
+        queue.push(item);
+        (async()=>{
+          try{
+            const img = await readImage(file);
+            item.img = img;
+            ui.th.innerHTML='';
+            const ti = document.createElement('img'); ti.alt=''; ti.src = img.src; ui.th.appendChild(ti);
+            ui.badge.textContent='ready';
+          }catch(err){
+            ui.badge.textContent='error'; ui.badge.style.background='#2b1230'; ui.badge.style.borderColor='#5b1230';
+          }
+          updateSummary();
+        })();
+      }
+    }
+
+    function updateSummary(){
+      const total = queue.length;
+      const done = queue.filter(x=>!!x.outBlob).length;
+      summary.textContent = `${done}/${total} ready for download`;
+    }
+
+    function showToast(){
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), 2400);
+    }
+
+    function drawToCanvas(img, bg){
+      const ctx = work.getContext('2d');
+      work.width = img.naturalWidth;
+      work.height = img.naturalHeight;
+      ctx.clearRect(0,0,work.width, work.height);
+      if(bg){ ctx.fillStyle = bg; ctx.fillRect(0,0,work.width, work.height); }
+      ctx.drawImage(img, 0, 0);
+      return ctx;
+    }
+
+    function toDataURL(mime, quality){
+      return work.toDataURL(mime, quality);
+    }
+    function dataURLtoBlob(dataURL){
+      const [h, b] = dataURL.split(',');
+      const mime = h.match(/:(.*?);/)[1];
+      const bin = atob(b);
+      const len = bin.length; const u8 = new Uint8Array(len);
+      for(let i=0;i<len;i++) u8[i] = bin.charCodeAt(i);
+      return new Blob([u8], {type:mime});
+    }
+
+    function rgbaToICO(img){
+      // Build 256x256 32bpp ICO (single image) from canvas image
+      const w=256, h=256;
+      const ctx = work.getContext('2d');
+      work.width=w; work.height=h; ctx.clearRect(0,0,w,h); ctx.drawImage(img, 0,0, w,h);
+      const id = ctx.getImageData(0,0,w,h).data;
+      const rowSize = w*4;
+      const xorSize = rowSize*h;
+      const andRowBytes = Math.ceil(w/32)*4; // each row padded to 32-bit boundary
+      const andSize = andRowBytes*h;
+      const dibSize = 40; // BITMAPINFOHEADER
+      const imgSize = dibSize + xorSize + andSize;
+      const icoSize = 6 + 16 + imgSize;
+      const buf = new ArrayBuffer(icoSize);
+      const dv = new DataView(buf);
+      let o=0;
+      // ICONDIR
+      dv.setUint16(o,0,true); o+=2; // reserved
+      dv.setUint16(o,1,true); o+=2; // type 1 = icon
+      dv.setUint16(o,1,true); o+=2; // count
+      // ICONDIRENTRY
+      dv.setUint8(o,0); o+=1; // width 0=256
+      dv.setUint8(o,0); o+=1; // height 0=256
+      dv.setUint8(o,0); o+=1; // colors
+      dv.setUint8(o,0); o+=1; // reserved
+      dv.setUint16(o,1,true); o+=2; // planes
+      dv.setUint16(o,32,true); o+=2; // bitcount
+      dv.setUint32(o,imgSize,true); o+=4; // bytes in resource
+      dv.setUint32(o,6+16,true); o+=4; // offset
+      // DIB header (BITMAPINFOHEADER)
+      dv.setUint32(o,40,true); o+=4; // header size
+      dv.setInt32(o,w,true); o+=4; // width
+      dv.setInt32(o,h*2,true); o+=4; // height *2 (for AND mask)
+      dv.setUint16(o,1,true); o+=2; // planes
+      dv.setUint16(o,32,true); o+=2; // bpp
+      dv.setUint32(o,0,true); o+=4; // BI_RGB
+      dv.setUint32(o,xorSize,true); o+=4; // image size
+      dv.setInt32(o,0,true); o+=4; // xppm
+      dv.setInt32(o,0,true); o+=4; // yppm
+      dv.setUint32(o,0,true); o+=4; // clr used
+      dv.setUint32(o,0,true); o+=4; // clr important
+      // XOR mask (BGRA, bottom-up)
+      let p = o;
+      const stride = w*4;
+      for(let y=0;y<h;y++){
+        const srcY = (h-1-y); // flip vertically
+        for(let x=0;x<w;x++){
+          const si = (srcY*w + x)*4;
+          const r=id[si], g=id[si+1], b=id[si+2], a=id[si+3];
+          dv.setUint8(p+0, b); // B
+          dv.setUint8(p+1, g); // G
+          dv.setUint8(p+2, r); // R
+          dv.setUint8(p+3, a); // A
+          p+=4;
+        }
+      }
+      o += xorSize;
+      // AND mask (1-bit/pixel, 0 = opaque); here we write 0s (fully opaque) with row padding
+      const andStart = o;
+      const and = new Uint8Array(buf, andStart, andSize);
+      and.fill(0);
+      return new Blob([buf], {type:'image/x-icon'});
+    }
+
+    async function convertItem(item){
+      const fmt = formatSel.value; const q = parseFloat(qualityInput.value);
+      const base = item.file.name.replace(/\.[^.]+$/, '')
+      if(fmt==='ico'){
+        const blob = rgbaToICO(item.img);
+        item.outBlob = blob; item.outName = base + '.ico';
+      }else{
+        const mime = fmt==='png' ? 'image/png' : (fmt==='jpeg' ? 'image/jpeg' : 'image/webp');
+        const bg = fmt==='jpeg' ? bgInput.value : null;
+        drawToCanvas(item.img, bg);
+        // Prefer canvas.toBlob if available (async, preserves color better). Fallback to dataURL.
+        item.outBlob = await new Promise(res=> work.toBlob(b=>res(b), mime, q)) || dataURLtoBlob(toDataURL(mime, q));
+        item.outName = base + (fmt==='jpeg'?'.jpg':'.'+fmt);
+      }
+      // add per-file download button
+      let dl = item.ui.actions.querySelector('a');
+      if(!dl){ dl = document.createElement('a'); dl.className='badge'; dl.textContent='download'; item.ui.actions.appendChild(dl); }
+      dl.href = URL.createObjectURL(item.outBlob);
+      dl.download = item.outName;
+      item.ui.badge.textContent='done';
+    }
+
+    async function convertAll(){
+      const tasks = queue.filter(x=>x.img && !x.outBlob).map(convertItem);
+      await Promise.all(tasks);
+      updateSummary();
+      showToast();
+    }
+
+    async function handleZip(){
+      const files = queue.filter(x=>x.outBlob).map(x=>({name:x.outName, blob:x.outBlob}));
+      if(files.length===0){ await convertAll(); return handleZip(); }
+      const blob = await createZip(files);
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'images.zip'; a.click();
+    }
+
+    convertBtn.addEventListener('click', convertAll);
+    zipBtn.addEventListener('click', handleZip);
+
+    function crc32(arr){
+      let c = ~0; for(let i=0;i<arr.length;i++){ c = (c>>>8) ^ CRC_TABLE[(c^arr[i]) & 0xFF]; } return ~c >>> 0;
+    }
+    const CRC_TABLE = (()=>{let c, t=new Uint32Array(256); for(let n=0;n<256;n++){c=n;for(let k=0;k<8;k++){c=c&1?0xEDB88320^(c>>>1):(c>>>1)} t[n]=c>>>0;} return t;})();
+
+    async function createZip(files){
+      // STORE only (no compression) zip writer
+      const enc = new TextEncoder();
+      const fileRecs = [];
+      let chunks = [];
+      let offset = 0;
+      for(const f of files){
+        const nameBytes = enc.encode(f.name);
+        const buf = new Uint8Array(await f.blob.arrayBuffer());
+        const crc = crc32(buf);
+        const localHeader = new Uint8Array(30 + nameBytes.length);
+        let p=0;
+        write32(localHeader, p, 0x04034b50); p+=4; // sig
+        write16(localHeader, p, 20); p+=2; // version needed
+        write16(localHeader, p, 0); p+=2; // flags
+        write16(localHeader, p, 0); p+=2; // method STORE
+        write16(localHeader, p, dosTime(new Date()).time); p+=2;
+        write16(localHeader, p, dosTime(new Date()).date); p+=2;
+        write32(localHeader, p, crc); p+=4;
+        write32(localHeader, p, buf.length); p+=4;
+        write32(localHeader, p, buf.length); p+=4;
+        write16(localHeader, p, nameBytes.length); p+=2;
+        write16(localHeader, p, 0); p+=2; // extra len
+        localHeader.set(nameBytes, p);
+
+        chunks.push(localHeader, buf);
+        fileRecs.push({nameBytes, crc, size:buf.length, offset});
+        offset += localHeader.length + buf.length;
+      }
+      // central directory
+      let cdChunks=[]; let cdSize=0;
+      for(const r of fileRecs){
+        const h = new Uint8Array(46 + r.nameBytes.length);
+        let p=0;
+        write32(h,p,0x02014b50); p+=4; // sig
+        write16(h,p,20); p+=2; // version made
+        write16(h,p,20); p+=2; // version needed
+        write16(h,p,0); p+=2; // flags
+        write16(h,p,0); p+=2; // method STORE
+        write16(h,p,dosTime(new Date()).time); p+=2;
+        write16(h,p,dosTime(new Date()).date); p+=2;
+        write32(h,p,r.crc); p+=4;
+        write32(h,p,r.size); p+=4;
+        write32(h,p,r.size); p+=4;
+        write16(h,p,r.nameBytes.length); p+=2;
+        write16(h,p,0); p+=2; // extra
+        write16(h,p,0); p+=2; // comment
+        write16(h,p,0); p+=2; // disk
+        write16(h,p,0); p+=2; // int attrs
+        write32(h,p,0); p+=4; // ext attrs
+        write32(h,p,r.offset); p+=4; // local header offset
+        h.set(r.nameBytes, p);
+        cdChunks.push(h); cdSize += h.length;
+      }
+      const cdOffset = offset;
+      chunks = chunks.concat(cdChunks);
+      // end of central directory
+      const end = new Uint8Array(22);
+      let p=0; write32(end,p,0x06054b50); p+=4; // sig
+      write16(end,p,0); p+=2; // disk
+      write16(end,p,0); p+=2; // start disk
+      write16(end,p,fileRecs.length); p+=2; // entries on disk
+      write16(end,p,fileRecs.length); p+=2; // total entries
+      write32(end,p,cdSize); p+=4; // cd size
+      write32(end,p,cdOffset); p+=4; // cd offset
+      write16(end,p,0); p+=2; // comment len
+      chunks.push(end);
+
+      const total = offset + cdSize + end.length;
+      const out = new Uint8Array(total);
+      let o=0; for(const c of chunks){ out.set(c, o); o += c.length; }
+      return new Blob([out], {type:'application/zip'});
+
+      function write16(arr, i, v){ arr[i] = v & 0xff; arr[i+1] = (v>>>8)&0xff; }
+      function write32(arr, i, v){ arr[i] = v & 0xff; arr[i+1]=(v>>>8)&0xff; arr[i+2]=(v>>>16)&0xff; arr[i+3]=(v>>>24)&0xff; }
+      function dosTime(d){
+        const time = (d.getHours()<<11) | (d.getMinutes()<<5) | (d.getSeconds()>>1);
+        const date = ((d.getFullYear()-1980)<<9) | ((d.getMonth()+1)<<5) | d.getDate();
+        return {time, date};
+      }
+    }
+  </script>
+</body>
+</html>
